@@ -1,0 +1,280 @@
+/* ===== RESET Y BASE ===== */
+.ventas-body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #f8fafc;
+    overflow: hidden;
+    height: 100vh;
+}
+
+/* ===== SCROLL PERSONALIZADO ===== */
+.ventas-body ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+.ventas-body ::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.ventas-body ::-webkit-scrollbar-thumb {
+    background: #94a3b8;
+    border-radius: 9999px;
+}
+
+.ventas-body ::-webkit-scrollbar-thumb:hover {
+    background: #64748b;
+}
+
+/* ===== ANIMACIONES ===== */
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes pulse-green {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
+    }
+    50% {
+        box-shadow: 0 0 0 8px rgba(16, 185, 129, 0);
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.card-animate {
+    animation: slideIn 0.3s ease-out forwards;
+}
+
+.modal-animate {
+    animation: fadeInScale 0.25s ease-out forwards;
+}
+
+/* ===== TARJETAS DE PRODUCTOS ===== */
+.product-card-venta {
+    transition: all 0.2s ease;
+    cursor: pointer;
+    border: 2px solid transparent;
+    position: relative;
+    overflow: hidden;
+}
+
+.product-card-venta:hover {
+    transform: translateY(-2px);
+    border-color: #10b981;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+}
+
+.product-card-venta:active {
+    transform: scale(0.97);
+}
+
+.product-card-venta .stock-indicator {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    width: 8px;
+    height: 8px;
+    border-radius: 9999px;
+}
+
+.product-card-venta .stock-indicator.verde {
+    background: #22c55e;
+}
+
+.product-card-venta .stock-indicator.amarillo {
+    background: #eab308;
+    animation: pulse-green 1.5s ease-in-out infinite;
+}
+
+.product-card-venta .stock-indicator.rojo {
+    background: #ef4444;
+    animation: pulse-green 1s ease-in-out infinite;
+}
+
+/* ===== ITEMS DEL CARRITO ===== */
+.cart-item {
+    animation: slideIn 0.25s ease-out forwards;
+    transition: all 0.2s ease;
+}
+
+.cart-item:hover {
+    background: #f1f5f9;
+}
+
+.cart-item-removing {
+    animation: slideIn 0.25s ease-out reverse forwards;
+    opacity: 0;
+    transform: translateX(20px);
+}
+
+/* ===== BOTÓN COMPLETAR VENTA ===== */
+.btn-completar {
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-completar:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 40px rgba(16, 185, 129, 0.4);
+}
+
+.btn-completar:active:not(:disabled) {
+    transform: scale(0.97);
+}
+
+.btn-completar:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-completar .ripple {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(0);
+    animation: ripple 0.6s linear;
+    pointer-events: none;
+}
+
+@keyframes ripple {
+    to {
+        transform: scale(4);
+        opacity: 0;
+    }
+}
+
+/* ===== FILTROS CATEGORÍAS ===== */
+.filter-pill {
+    transition: all 0.2s ease;
+    cursor: pointer;
+    user-select: none;
+}
+
+.filter-pill:hover {
+    background: #e2e8f0;
+}
+
+.filter-pill.active {
+    background: #10b981;
+    color: white;
+    border-color: #10b981;
+}
+
+/* ===== INPUTS DE CANTIDAD ===== */
+.qty-input {
+    width: 48px;
+    text-align: center;
+    font-weight: 600;
+    -moz-appearance: textfield;
+}
+
+.qty-input::-webkit-outer-spin-button,
+.qty-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* ===== BADGE DE ESTADO CONEXIÓN ===== */
+.status-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 9999px;
+    margin-right: 6px;
+}
+
+.status-dot.online {
+    background: #22c55e;
+    animation: pulse-green 2s ease-in-out infinite;
+}
+
+.status-dot.offline {
+    background: #ef4444;
+    animation: none;
+}
+
+/* ===== MÉTODOS DE PAGO ===== */
+.metodo-pago {
+    transition: all 0.2s ease;
+}
+
+.metodo-pago.active {
+    border-color: #10b981;
+    background: rgba(16, 185, 129, 0.08);
+}
+
+.metodo-pago:not(.active) {
+    border-color: #e2e8f0;
+    background: white;
+}
+
+.metodo-pago:hover:not(.active) {
+    border-color: #94a3b8;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1024px) {
+    .split-view {
+        flex-direction: column;
+        height: auto !important;
+    }
+    .split-left, .split-right {
+        width: 100% !important;
+        max-height: 50vh !important;
+    }
+    .ventas-body {
+        overflow-y: auto !important;
+        height: auto !important;
+    }
+}
+
+@media (max-width: 640px) {
+    .product-card-venta {
+        padding: 0.75rem !important;
+    }
+    .product-card-venta h3 {
+        font-size: 0.8rem !important;
+    }
+    .modal-content {
+        width: 95% !important;
+        padding: 1.5rem !important;
+    }
+}
+
+/* ===== OCULTAR SCROLLBAR EN FILTROS ===== */
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+
+.scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}

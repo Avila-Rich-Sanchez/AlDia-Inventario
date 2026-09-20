@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/ventas.css') }}">
+    <link rel="shortcut icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.svg') }}">
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <meta name="theme-color" content="#0f172a">
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
+    <link rel="icon" type="image/png" sizes="192x192" href="{{ url_for('static', filename='favicon.png') }}">
+    <link rel="apple-touch-icon" sizes="192x192" href="{{ url_for('static', filename='favicon.png') }}">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>AlDía | Punto de Venta</title>
+</head>
+<body class="ventas-body bg-slate-50">
+
+    <nav class="bg-slate-900 text-white shadow-lg sticky top-0 z-50">
+        <div class="px-4 sm:px-6 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <h1 class="text-xl font-black text-emerald-400 tracking-tight">
+                    AlDía
+                    <span class="text-xs font-normal text-slate-400 ml-1.5">| Ventas</span>
+                </h1>
+                <span class="hidden md:inline text-xs text-slate-400 bg-slate-800 px-3 py-1 rounded-full border border-slate-700 ticket-number">
+                    #{{ ticket_number }}
+                </span>
+            </div>
+            <div class="flex items-center gap-3">
+                <!-- Estado conexión -->
+                <div class="flex items-center gap-2 text-xs">
+                    <span id="connectionStatus" class="flex items-center text-slate-300">
+                        <span class="status-dot online" id="statusDot"></span>
+                        <span id="statusText">En línea</span>
+                    </span>
+                </div>
+                <!-- Reloj -->
+                <span id="clockDisplay" class="text-xs text-slate-400 font-mono bg-slate-800 px-3 py-1 rounded-full border border-slate-700">
+                    --:--:--
+                </span>
+                <!-- Botón regresar -->
+                <a href="{{ url_for('inventario') }}" 
+                class="text-slate-300 hover:text-white transition-colors bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                    </svg>
+                    Inventario
+                </a>
+                <a href="{{ url_for('historial') }}" class="text-slate-300 hover:text-white transition-colors bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg text-xs font-medium">
+                    Historial
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="split-view flex h-[calc(100vh-73px)] overflow-hidden">
+        
+        <div class="split-left w-3/5 flex flex-col bg-slate-50 border-r border-slate-200">
+            <!-- Barra de búsqueda y filtros -->
+            <div class="p-4 bg-white border-b border-slate-200 shadow-sm sticky top-0 z-10">
+                <div class="flex gap-3">
+                    <div class="flex-1 relative">
+                        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                        <input type="text" id="searchProduct" 
+                            placeholder="Buscar por nombre o código..." 
+                            class="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-xl text-sm text-slate-700 bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
+                            autofocus>
+                    </div>
+                </div>
+                <!-- Filtros categorías -->
+                <div class="flex gap-1.5 mt-3 overflow-x-auto pb-1 scrollbar">
+                    <button class="filter-pill active px-4 py-1.5 rounded-full text-xs font-medium border border-slate-200 bg-emerald-500 text-white" 
+                            data-categoria="todos">Todos</button>
+                    {% for categoria in categorias %}
+                    <button class="filter-pill px-4 py-1.5 rounded-full text-xs font-medium border border-slate-200 bg-white text-slate-600 hover:bg-slate-50" 
+                            data-categoria="{{ categoria }}">{{ categoria }}</button>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Grid de productos -->
+            <div class="flex-1 overflow-y-auto p-4">
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3" id="productGrid">
+                    {% for producto in productos %}
+                    <div class="product-card-venta bg-white rounded-xl p-3 shadow-sm border border-slate-200/60 card-animate" 
+                        data-id="{{ producto.id }}"
+                        data-nombre="{{ producto.nombre }}"
+                        data-codigo="{{ producto.codigo }}"
+                        data-precio="{{ producto.precio_venta }}"
+                        data-stock="{{ producto.stock_actual }}"
+                        data-categoria="{{ producto.categoria }}"
+                        onclick="addToCart({{ producto.id }})">
+                        
+                        <div class="flex justify-between items-start mb-1.5">
+                            <span class="text-xs font-mono text-slate-400">{{ producto.codigo }}</span>
+                            {% set stock = producto.stock_actual %}
+                            {% if stock == 0 %}
+                                <span class="stock-indicator rojo"></span>
+                            {% elif stock <= producto.stock_minimo %}
+                                <span class="stock-indicator amarillo"></span>
+                            {% else %}
+                                <span class="stock-indicator verde"></span>
+                            {% endif %}
+                        </div>
+                        <h3 class="text-sm font-semibold text-slate-800 line-clamp-2 leading-tight">{{ producto.nombre }}</h3>
+                        <p class="text-xs text-slate-500 mt-0.5">{{ producto.categoria }}</p>
+                        <div class="flex items-center justify-between mt-2 pt-2 border-t border-slate-100">
+                            <span class="text-base font-bold text-emerald-600">${{ "%.2f"|format(producto.precio_venta) }}</span>
+                            <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">
+                                Stock: {{ stock }}
+                            </span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <!-- Mensaje sin resultados -->
+                <div id="noResults" class="hidden text-center py-12">
+                    <svg class="w-16 h-16 mx-auto text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <p class="text-slate-500 mt-2">No se encontraron productos</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="split-right w-2/5 flex flex-col bg-white">
+            <!-- Encabezado del carrito -->
+            <div class="p-4 border-b border-slate-200 bg-slate-50/50">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <span class="text-xs font-medium text-slate-500">Ticket</span>
+                        <span class="text-sm font-bold text-slate-800 ml-2 ticket-number">#{{ ticket_number }}</span>
+                    </div>
+                    <span class="text-xs text-slate-500">Cliente general</span>
+                </div>
+                <div class="flex items-center gap-2 mt-2">
+                    <span class="text-xs text-slate-500">Artículos:</span>
+                    <span id="cartItemsCount" class="text-sm font-semibold text-slate-700">0</span>
+                </div>
+            </div>
+
+            <!-- Lista de productos en carrito -->
+            <div class="flex-1 overflow-y-auto p-4" id="cartItemsContainer">
+                <div id="emptyCartMessage" class="text-center py-12">
+                    <svg class="w-16 h-16 mx-auto text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+                    </svg>
+                    <p class="text-slate-500 mt-2">Carrito vacío</p>
+                    <p class="text-xs text-slate-400">Selecciona un producto para comenzar</p>
+                </div>
+                <div id="cartItemsList" class="space-y-2"></div>
+            </div>
+
+            <!-- Totales y acciones -->
+            <div class="border-t border-slate-200 bg-slate-50/80 p-4">
+                <!-- Resumen de totales -->
+                <div class="space-y-2">
+                    <div class="flex justify-between text-sm">
+                        <span class="text-slate-500">Subtotal</span>
+                        <span class="font-medium text-slate-700" id="subtotalDisplay">$0.00</span>
+                    </div>
+                    <div class="flex justify-between text-sm items-center">
+                        <span class="text-slate-500">IVA (16%)</span>
+                        <span class="font-medium text-slate-700" id="ivaDisplay">$0.00</span>
+                    </div>
+                    <div class="flex justify-between text-2xl font-black pt-2 border-t border-slate-200">
+                        <span class="text-slate-800">TOTAL</span>
+                        <span class="text-emerald-600" id="totalDisplay">$0.00</span>
+                    </div>
+                </div>
+
+                <!-- Botón Completar Venta -->
+                <button id="completarVenta" 
+                        class="btn-completar w-full mt-3 bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3.5 rounded-xl text-lg shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                        onclick="completarVenta()" disabled>
+                    REGISTRAR VENTA <span class="text-xs font-normal opacity-80">(F10)</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Factura/Ticket -->
+    <div id="ticketModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="modal-animate bg-white rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto p-6 shadow-2xl">
+            <div class="flex justify-between items-start mb-4">
+                <div>
+                    <h3 class="text-xl font-black text-slate-800">Ticket #<span id="ticketNumberDisplay"></span></h3>
+                    <p class="text-sm text-slate-500" id="ticketDateDisplay"></p>
+                </div>
+                <button onclick="closeTicketModal()" class="text-slate-400 hover:text-slate-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="border-t border-slate-200 py-4">
+                <div id="ticketItems" class="space-y-2 text-sm"></div>
+            </div>
+            <div class="border-t border-slate-200 pt-4 space-y-1">
+                <div class="flex justify-between text-sm"><span class="text-slate-500">Subtotal</span><span id="ticketSubtotal"></span></div>
+                <div class="flex justify-between text-sm"><span class="text-slate-500">IVA</span><span id="ticketIVA"></span></div>
+                <div class="flex justify-between text-xl font-black pt-2 border-t border-slate-200"><span>TOTAL</span><span class="text-emerald-600" id="ticketTotal"></span></div>
+            </div>
+            <div class="flex gap-3 mt-4">
+                <button onclick="printTicket()" class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-2.5 rounded-xl transition-all">🖨️ Imprimir</button>
+                <button onclick="closeTicketModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2.5 rounded-xl transition-all">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Cambio/Vuelto -->
+    <div id="cambioModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="modal-animate bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl">
+            <h3 class="text-xl font-black text-slate-800 mb-4">Calcular Vuelto</h3>
+            <div class="space-y-3">
+                <div class="flex justify-between text-lg"><span>Total a pagar</span><span class="font-bold" id="cambioTotal">$0.00</span></div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Dinero recibido</label>
+                    <input type="number" id="dineroRecibido" placeholder="$0.00" min="0" step="0.01"
+                        class="w-full px-4 py-3 border border-slate-300 rounded-xl text-lg font-bold focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                        oninput="calcularVuelto()">
+                </div>
+                <div class="flex justify-between text-2xl font-black pt-3 border-t border-slate-200">
+                    <span class="text-slate-600">Vuelto</span>
+                    <span id="vueltoDisplay" class="text-slate-400">$0.00</span>
+                </div>
+            </div>
+            <div class="flex gap-3 mt-4">
+                <button onclick="confirmarVuelto()" class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-2.5 rounded-xl transition-all">Confirmar</button>
+                <button onclick="cancelarVuelto()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2.5 rounded-xl transition-all">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/ventas.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/sw.js') }}"></script>
+</body>
+</html>

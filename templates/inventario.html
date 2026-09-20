@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="shortcut icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.svg') }}">
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <meta name="theme-color" content="#0f172a">
+    <!-- Icono estándar / SVG para navegador -->
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
+
+    <!-- Iconos de respaldo en PNG -->
+    <link rel="icon" type="image/png" sizes="192x192" href="{{ url_for('static', filename='favicon.png') }}">
+
+    <!-- Compatibilidad con iPhone / iPad (Safari) -->
+    <link rel="apple-touch-icon" sizes="192x192" href="{{ url_for('static', filename='favicon.png') }}">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Inventario AlDía</title>
+</head>
+<body class="bg-slate-50 min-h-screen">
+    <!-- Header -->
+    <div class="flex items-center justify-between p-4 bg-slate-900 text-white shadow-lg sticky top-0 z-10">
+        <h1 class="text-2xl font-black text-emerald-400 tracking-tight">
+            AlDía
+            <span class="text-xs font-normal text-slate-400 ml-2">
+                Inventario
+            </span>
+        </h1>
+        <div class="flex items-center gap-3">
+            <button id="notifBell"
+                    class="relative bg-slate-800 hover:bg-slate-700 text-slate-300 p-2 rounded-lg transition-all border border-slate-700"
+                    title="Notificaciones">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                </svg>
+                <span id="notifBadge"
+                    class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
+                    0
+                </span>
+            </button>
+            <a href="{{ url_for('ventas') }}" 
+                class="hidden sm:inline-block bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 px-4 py-1.5 rounded-lg text-xs font-medium transition-all border border-emerald-500/30">
+                    Ir a Ventas
+            </a>
+                    <a href="{{ url_for('historial') }}" 
+                    class="hidden sm:inline-block bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-1.5 rounded-lg text-xs font-medium transition-all border border-slate-700">
+                        Historial
+                    </a>
+            <span class="hidden sm:inline px-3 py-1 bg-emerald-500/20 text-emerald-300 text-xs rounded-full border border-emerald-500/30">
+                ● Sistema en línea
+            </span>
+            <span class="text-xs text-slate-400 bg-slate-800 px-3 py-1 rounded-full " id="productCount">
+                {{ productos|length }} productos
+            </span>
+        </div>
+    </div>
+
+    <div class="bg-slate-100 py-4 px-6 border-b border-slate-200">
+        <h2 class="text-lg font-semibold text-slate-800">
+            Inventario de Productos
+        </h2>
+        <p class="text-sm text-slate-500 mt-1">
+            Visualiza y gestiona el inventario de productos disponibles.
+        </p>
+        <input type="text" id="searchInput" placeholder="Buscar por nombre, código o categoría..." 
+            class="mt-3 w-full px-4 py-2.5 border border-slate-300 rounded-xl text-slate-700 bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all">
+    </div>
+    <!-- Contenedor principal con tabla centrada -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Tabla responsiva -->
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200/100">
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="bg-slate-50 border-b-2 border-slate-200">
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider" >
+                                Nombre
+                            </th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider" >
+                                Código
+                            </th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider" >
+                                Categoría
+                            </th>
+                            <th class="px-6 py-4 text-right text-xs font-semibold text-slate-600 uppercase tracking-wider" >
+                                Costo
+                            </th>
+                            <th class="px-6 py-4 text-right text-xs font-semibold text-slate-600 uppercase tracking-wider" >
+                                Precio venta
+                            </th>
+                            <th class="px-6 py-4 text-right text-xs font-semibold text-slate-600 uppercase tracking-wider" >
+                                Ganancia
+                            </th>
+                            <th class="px-6 py-4 text-center text-xs font-semibold text-slate-600 uppercase tracking-wider" >
+                                Stock Actual
+                            </th>
+                            <th class="px-6 py-4 text-center text-xs font-semibold text-slate-600 uppercase tracking-wider" >
+                                Stock Mínimo
+                            </th>
+                            <th class="px-6 py-4 text-center text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                                Estado
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody id="productTableBody">
+                        {% for producto in productos %}
+                        {% set estado = producto.estado_semaforo() %}
+                        {% set stock = producto.stock_actual %}
+                        {% set stock_minimo = producto.stock_minimo %}
+                        {% set clase_badge = 'stock-badge-verde' %}
+                        
+                        {% if stock == 0 %}
+                            {% set clase_badge = 'stock-badge-rojo' %}
+                        {% elif stock <= stock_minimo %}
+                            {% set clase_badge = 'stock-badge-amarillo' %}
+                        {% endif %}
+                        
+                        <tr class="product-card hover:bg-slate-50/80 transition-colors duration-200 stock" 
+                            data-nombre="{{ producto.nombre }}"
+                            data-codigo="{{ producto.codigo }}"
+                            data-categoria="{{ producto.categoria }}"
+                            data-precio="{{ producto.precio_venta }}"
+                            data-stock="{{ producto.stock_actual }}"
+                            data-stock-minimo="{{ producto.stock_minimo }}"
+                            data-estado="{{ estado }}">
+                            <td class="px-6 py-4 font-medium text-slate-800">
+                                {{ producto.nombre }}
+                            </td>
+                            <td class="px-6 py-4 font-mono text-xs text-slate-500">
+                                {{ producto.codigo }}
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="px-2 py-1 bg-slate-100 text-slate-800 rounded-full text-xs categoria-tag">
+                                    {{ producto.categoria }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 text-right font-semibold text-slate-800 precio-valor">
+                                ${{ "%.2f"|format(producto.precio_costo or 0) }}
+                            </td>
+                            <td class="px-6 py-4 text-right font-semibold text-slate-800 precio-valor">
+                                ${{ "%.2f"|format(producto.precio_venta) }}
+                            </td>
+                            <td class="px-6 py-4 text-right font-semibold text-emerald-600 precio-valor">
+                                ${{ "%.2f"|format((producto.precio_venta) - (producto.precio_costo or 0)) }}
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                <div class="inline-flex items-center gap-2">
+                                    <span class="font-bold text-lg {% if stock == 0 %}text-red-600{% elif stock <= stock_minimo %}text-yellow-600{% else %}text-slate-700{% endif %}">
+                                        {{ stock }}
+                                    </span>
+                                    <span class="stock-badge {{ clase_badge }}">
+                                        {{ 'Crítico' if stock == 0 else 'Bajo' if stock <= stock_minimo else 'OK' }}
+                                    </span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 text-center text-slate-500">
+                                {{ producto.stock_minimo }}
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                <span class="semaforo {{ 'semaforo-verde' if estado == 'verde' else 'semaforo-amarillo' if estado == 'amarillo' else 'semaforo-rojo' }} px-3 py-1.5 rounded-full text-xs font-semibold inline-block min-w-[70px]">
+                                    {{ estado|capitalize }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Footer de la tabla -->
+            <div class="bg-slate-50 px-6 py-4 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+                <div class="flex items-center gap-4">
+                    <span>● <span class="text-emerald-600 font-medium">Verde:</span> Stock suficiente</span>
+                    <span>● <span class="text-yellow-600 font-medium">Amarillo:</span> Stock bajo (≤ Mínimo)</span>
+                    <span>● <span class="text-red-600 font-medium">Rojo:</span> Sin stock (0)</span>
+                </div>
+                <span class="text-slate-400" id="filterStatus">
+                    Mostrando todos los productos
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Botón Flotante -->
+    <button id="filterButton" class="btn-flotante bg-emerald-500 hover:bg-emerald-600 text-white p-4 rounded-full shadow-lg transition-all duration-200 flex items-center gap-2">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+        </svg>
+        <span class="hidden sm:inline font-semibold">Filtros</span>
+        <span id="filterBadge" class="hidden bg-red-500 text-white text-xs rounded-full px-2 py-0.5 -ml-1">0</span>
+    </button>
+
+    <button id="importButton" class="btn-flotante bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-full shadow-lg transition-all duration-200 flex items-center gap-2" style="right: 22rem">
+    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+    </svg>
+    <span class="hidden sm:inline font-semibold">Importar</span>
+    </button>
+
+    <button id="newProductButton" class="btn-flotante bg-slate-800 hover:bg-slate-700 text-white p-4 rounded-full shadow-lg transition-all duration-200 flex items-center gap-2" style="right: 10rem">
+        <span class="text-2xl leading-none">+</span>
+        <span class="hidden sm:inline font-semibold">Nuevo producto</span>
+    </button>
+    
+    <!-- Modal -->
+    <div id="filterModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-xl font-bold text-slate-800">Filtrar Productos</h2>
+                <button id="closeModal" class="text-slate-400 hover:text-slate-600 transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+
+            <form id="filterForm" class="space-y-6">
+                <!-- Filtro por Categoría -->
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">Categoría</label>
+                    <select id="categoriaFilter" class="w-full px-4 py-2.5 border border-slate-300 rounded-xl text-slate-700 bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all">
+                        <option value="">Todas las categorías</option>
+                        {% for cat in productos | map(attribute='categoria') | unique %}
+                            <option value="{{ cat }}">{{ cat }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Filtro por Precio -->
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">Rango de Precio</label>
+                    <div class="flex items-center gap-3">
+                        <div class="flex-1">
+                            <label class="block text-xs text-slate-500 mb-1">Mínimo</label>
+                            <input type="number" id="precioMin" placeholder="$0" min="0" step="0.01" 
+                                class="w-full px-4 py-2.5 border border-slate-300 rounded-xl text-slate-700 bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all">
+                        </div>
+                        <span class="text-slate-400 font-medium">a</span>
+                        <div class="flex-1">
+                            <label class="block text-xs text-slate-500 mb-1">Máximo</label>
+                            <input type="number" id="precioMax" placeholder="$9999" min="0" step="0.01" 
+                                class="w-full px-4 py-2.5 border border-slate-300 rounded-xl text-slate-700 bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filtro por Stock (adicional) -->
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">Estado de Stock</label>
+                    <div class="flex gap-3 flex-wrap">
+                        <label class="flex items-center gap-2 text-sm text-slate-600">
+                            <input type="checkbox" id="stockVerde" value="verde" class="rounded text-emerald-500 focus:ring-emerald-400">
+                            <span class="flex items-center gap-1">
+                                <span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span>
+                                Verde
+                            </span>
+                        </label>
+                        <label class="flex items-center gap-2 text-sm text-slate-600">
+                            <input type="checkbox" id="stockAmarillo" value="amarillo" class="rounded text-yellow-500 focus:ring-yellow-400">
+                            <span class="flex items-center gap-1">
+                                <span class="w-3 h-3 rounded-full bg-yellow-500 inline-block"></span>
+                                Amarillo
+                            </span>
+                        </label>
+                        <label class="flex items-center gap-2 text-sm text-slate-600">
+                            <input type="checkbox" id="stockRojo" value="rojo" class="rounded text-red-500 focus:ring-red-400">
+                            <span class="flex items-center gap-1">
+                                <span class="w-3 h-3 rounded-full bg-red-500 inline-block"></span>
+                                Rojo
+                            </span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Botones de acción -->
+                <div class="flex gap-3 pt-4 border-t border-slate-200">
+                    <button type="submit" class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-2.5 px-4 rounded-xl transition-all duration-200 shadow-md hover:shadow-lg">
+                        Aplicar Filtros
+                    </button>
+                    <button type="reset" id="resetFilters" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2.5 px-4 rounded-xl transition-all duration-200">
+                        Limpiar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+        <!-- Panel de notificaciones (lateral derecho) -->
+    <div id="notifPanel" class="fixed top-0 right-0 h-full w-full sm:w-[420px] bg-white shadow-2xl z-40 transform translate-x-full transition-transform duration-300 flex flex-col">
+        <!-- Header del panel -->
+        <div class="flex items-center justify-between p-4 border-b border-slate-200 bg-slate-900 text-white">
+            <div class="flex items-center gap-2">
+                <h2 class="text-lg font-bold">Notificaciones</h2>
+                <span id="notifPanelCount" class="bg-red-500 text-white text-xs font-bold rounded-full px-2 py-0.5">0</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <button id="markAllRead" class="text-xs text-slate-300 hover:text-white px-2 py-1 rounded transition-colors">
+                    Marcar todas leídas
+                </button>
+                <button id="closeNotifPanel" class="text-slate-400 hover:text-white transition-colors p-1">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Lista de alertas -->
+        <div id="notifList" class="flex-1 overflow-y-auto p-4 space-y-3">
+            <!-- Se llena desde JS -->
+        </div>
+    </div>
+
+    <!-- Backdrop (fondo oscuro) -->
+    <div id="notifBackdrop" class="hidden fixed inset-0 bg-black/40 z-30 transition-opacity"></div>
+
+    <div id="productModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-xl font-bold text-slate-800">Registrar producto</h2>
+                <button id="closeProductModal" class="text-slate-400 hover:text-slate-600 transition-colors" type="button">
+                    <span class="text-2xl">&times;</span>
+                </button>
+            </div>
+            <form id="productForm" class="space-y-4">
+                <div>
+                    <label for="productCode" class="block text-sm font-semibold text-slate-700 mb-2">Codigo del producto</label>
+                    <input id="productCode" name="codigo" placeholder="Si lo dejas vacío, se genera automáticamente" maxlength="100" class="w-full px-4 py-2.5 border border-slate-300 rounded-xl text-slate-700 bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all">
+                </div>
+                <div>
+                    <label for="productName" class="block text-sm font-semibold text-slate-700 mb-2">Nombre de producto</label>
+                    <input id="productName" name="nombre" required maxlength="100" class="w-full px-4 py-2.5 border border-slate-300 rounded-xl text-slate-700 bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all">
+                </div>
+                <div>
+                    <label for="costPrice" class="block text-sm font-semibold text-slate-700 mb-2">Precio de costo</label>
+                    <input id="costPrice" name="precio_costo" type="number" required min="0" step="0.01" class="w-full px-4 py-2.5 border border-slate-300 rounded-xl text-slate-700 bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all">
+                </div>
+                <div>
+                    <label for="salePrice" class="block text-sm font-semibold text-slate-700 mb-2">Precio de venta</label>
+                    <input id="salePrice" name="precio_venta" type="number" required min="0" step="0.01" class="w-full px-4 py-2.5 border border-slate-300 rounded-xl text-slate-700 bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all">
+                </div>
+                <div>
+                    <label for="productStock" class="block text-sm font-semibold text-slate-700 mb-2">Stock</label>
+                    <input id="productStock" name="stock" type="number" required min="1" step="1" class="w-full px-4 py-2.5 border border-slate-300 rounded-xl text-slate-700 bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all">
+                </div>
+                <div>
+                    <label for="productStockmin" class="block text-sm font-semibold text-slate-700 mb-2">Stock Minimo</label>
+                    <input id="productStockmin" name="stockmin" type="number" required min="1" step="1" class="w-full px-4 py-2.5 border border-slate-300 rounded-xl text-slate-700 bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all">
+                </div>
+                <div>
+                    <label for="productCategory" class="block text-sm font-semibold text-slate-700 mb-2">Categoría</label>
+                    <input id="productCategory" name="categoria" required maxlength="50" class="w-full px-4 py-2.5 border border-slate-300 rounded-xl text-slate-700 bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all">
+                </div>
+                <button type="submit" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-2.5 px-4 rounded-xl transition-all duration-200 shadow-md">
+                    Registrar producto
+                </button>
+            </form>
+        </div>
+    </div>
+
+        <!-- Modal Importar Productos -->
+    <div id="importModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-xl font-bold text-slate-800">Importar productos desde Excel</h2>
+                <button id="closeImportModal" class="text-slate-400 hover:text-slate-600 transition-colors" type="button">
+                    <span class="text-2xl">&times;</span>
+                </button>
+            </div>
+
+            <!-- Paso 1: descargar plantilla -->
+            <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-5">
+                <p class="text-sm text-blue-800 font-semibold mb-2">Paso 1: Descarga la plantilla</p>
+                <p class="text-xs text-blue-700 mb-3">
+                    Rellena el archivo Excel con tus productos. No cambies los nombres de las columnas.
+                </p>
+                <a href="{{ url_for('descargar_plantilla') }}"
+                class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-xl transition-all text-sm">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                    </svg>
+                    Descargar plantilla
+                </a>
+            </div>
+
+            <!-- Paso 2: subir archivo -->
+            <div class="mb-5">
+                <p class="text-sm text-slate-800 font-semibold mb-2">Paso 2: Sube tu archivo</p>
+                <input type="file" id="importFile" accept=".xlsx"
+                    class="block w-full text-sm border border-slate-300 rounded-xl p-2.5 bg-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100">
+                <p class="text-xs text-slate-500 mt-2">Solo archivos .xlsx</p>
+            </div>
+
+            <!-- Resultado -->
+            <div id="importResult" class="hidden mb-5"></div>
+
+            <!-- Botones -->
+            <div class="flex gap-3 pt-4 border-t border-slate-200">
+                <button type="button" id="cancelImport"
+                        class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2.5 px-4 rounded-xl transition-all">
+                    Cancelar
+                </button>
+                <button type="button" id="doImport"
+                        class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-2.5 px-4 rounded-xl transition-all shadow-md">
+                    Importar
+                </button>
+            </div>
+        </div>
+    </div>
+
+        <!-- Modal Pedido a Proveedor -->
+    <div id="pedidoModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="flex items-center justify-between mb-5">
+                <h2 class="text-xl font-bold text-slate-800">Pedido al proveedor</h2>
+                <button id="closePedidoModal" class="text-slate-400 hover:text-slate-600 transition-colors" type="button">
+                    <span class="text-2xl">&times;</span>
+                </button>
+            </div>
+
+            <!-- Info del producto -->
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-5">
+                <p class="font-semibold text-slate-800" id="pedidoNombre">—</p>
+                <p class="text-xs text-slate-500 font-mono" id="pedidoCodigo">—</p>
+                <div class="flex items-center gap-4 text-xs text-slate-600 mt-2">
+                    <span>Stock actual: <strong class="text-red-600" id="pedidoStockActual">0</strong></span>
+                    <span>Mínimo: <strong id="pedidoStockMinimo">0</strong></span>
+                </div>
+                <p class="text-xs text-slate-500 mt-2">
+                    Proveedor: <span class="font-mono" id="pedidoProveedor">—</span>
+                </p>
+            </div>
+
+            <!-- Input cantidad objetivo -->
+            <div class="mb-4">
+                <label for="pedidoObjetivo" class="block text-sm font-semibold text-slate-700 mb-2">
+                    ¿Hasta cuánto quieres llegar?
+                </label>
+                <input type="number" id="pedidoObjetivo" min="1" step="1"
+                    class="w-full px-4 py-2.5 border border-slate-300 rounded-xl text-slate-700 bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all">
+                <p class="text-xs text-slate-500 mt-2">
+                    Cantidad a pedir: <strong class="text-emerald-600" id="pedidoCantidad">0</strong>
+                </p>
+            </div>
+
+            <!-- Preview del mensaje -->
+            <div class="mb-5">
+                <label class="block text-sm font-semibold text-slate-700 mb-2">Mensaje que se enviará:</label>
+                <textarea id="pedidoMensaje" rows="6" readonly
+                class="w-full px-4 py-2.5 border border-slate-300 rounded-xl text-slate-600 bg-slate-50 text-xs font-mono"></textarea>
+            </div>
+
+            <!-- Botones -->
+            <div class="flex gap-3 pt-4 border-t border-slate-200">
+                <button type="button" id="cancelPedido"
+                        class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2.5 px-4 rounded-xl transition-all">
+                    Cancelar
+                </button>
+                <button type="button" id="enviarPedido"
+                        class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-2.5 px-4 rounded-xl transition-all shadow-md flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
+                    </svg>
+                    Enviar por WhatsApp
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script para filtros -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/sw.js') }}"></script>
+</body>
+</html>

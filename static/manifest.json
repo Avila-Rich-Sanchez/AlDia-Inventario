@@ -1,0 +1,28 @@
+{
+    "name": "AlDía Inventario",
+    "short_name": "AlDía",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#0f172a",
+    "theme_color": "#0f172a",
+    "icons": [
+    {
+        "src": "/static/favicon.svg",
+        "sizes": "any",
+        "type": "image/svg+xml",
+        "purpose": "any"
+    },
+    {
+        "src": "/static/favicon.png",
+        "sizes": "192x192",
+        "type": "image/png",
+        "purpose": "any maskable"
+    },
+    {
+        "src": "/static/favicon.png",
+        "sizes": "512x512",
+        "type": "image/png",
+        "purpose": "any maskable"
+    }
+    ]
+}
